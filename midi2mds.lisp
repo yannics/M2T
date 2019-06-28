@@ -47,5 +47,34 @@
 	   (t (push tmp r) (setf tmp (list (nth i track))))))
     (mapcar #'(lambda (x) (list (caar x) (apply fun (mapcar #'cadr x)) (remove-duplicates (mapcar #'caddr x)))) (reverse r))))
 
+;;------------------------------------------------------------ 
+;; write result ...
+
+(defun group-list (lst len-lst)
+  (let ((tmp lst) (res nil))
+    (catch 'it
+      (loop for segment in len-lst
+	 while tmp
+	 do (push (loop for i from 1 to segment
+		     when (null tmp)
+		     do  (push sublist res) (throw 'it 0)
+		     end
+		     collect (pop tmp) into sublist
+		     finally (return sublist))
+		  res)))
+    (nreverse res)))
+
+(defun format-score-file (score pathname) 
+  (with-open-file (stream (make-pathname :directory (pathname-directory pathname)
+					 :name (pathname-name pathname)
+					 :type "score")
+			  :direction :output
+			  :if-exists :supersede
+			  :if-does-not-exist :create) 
+    (loop for i in score
+       for j in (group-list (scoring-duration (apply #'append (mapcar #'car score))) (mapcar #'length (mapcar #'car score)))
+       do
+	 (format stream "~{~a~^ ~}~&" j)
+	 (format stream "~{[~{~a~^,~}]~^ ~}~&" (cadr i)))))
+
 ;;----------------------------END-----------------------------
- 

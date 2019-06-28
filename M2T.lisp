@@ -29,8 +29,8 @@
 		  collect
 		    (list
 		     (car sm) 
-		     (/ (cadr sm) sum-sm)
-		     (/ ep sum-ep)
+		     (/ (cadr sm) sum-sm 1.0)
+		     (/ ep sum-ep 1.0)
 		     "")))
 	      (:midi
 	       (loop for sm in sort-melody
@@ -38,8 +38,8 @@
 		  collect
 		    (list
 		     (m->f (car sm)) 
-		     (/ (cadr sm) sum-sm)
-		     (/ ep sum-ep)
+		     (/ (cadr sm) sum-sm 1.0)
+		     (/ ep sum-ep 1.0)
 		     (car sm)))))))
     (when pathname
       (with-open-file (stream (make-pathname :directory (pathname-directory pathname)

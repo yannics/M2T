@@ -91,7 +91,7 @@
 (defun mht-mw (flst wlst)
   (clrhash *harmtab*)
   (let ((wlist (cond ((and (= (length flst) (length wlst)) (loop for l in wlst always (listp l)) (loop for wl in wlst always (loop for w in wl always (numberp w)))) wlst)
-		     ((loop for w in wlst always (numberp w)) (loop for f in flst collect wlst))
+		     ((loop for w in wlst always (numberp w)) (loop repeat (length flst) collect wlst))
 		     (t (warn "The second argument has to be a list of weights applied to all frequencies of the first argument or a list of lists of weights according to each frequency of the first argument."))))
 	(mlst (loop for f in flst collect (f->m f *approx*))))
     (loop for f in flst
@@ -134,11 +134,15 @@
   (flat (loop for i in (group-adj (sort (count-item-in-list lst) #'> :key #'car) #'car)
        collect (mapcar #'cadr (sort i #'< :key #'car)))))
 
+(defparameter *lensubs* nil)
 (defun reduce-subs (subs)
-  (mapcar #'(lambda (x) (if (listp x) (mapcar #'sort-n x) x)) (loop for i in subs collect (if (listp (caar i)) (loop for k in i collect (mapcar #'cadr k)) (caar i)))))
+  (let ((rs (mapcar #'(lambda (x) (if (listp x) (mapcar #'sort-n x) x)) (loop for i in subs collect (if (listp (caar i)) (loop for k in i collect (mapcar #'cadr k)) (caar i))))))
+    (setf *lensubs* (loop for ln in rs collect (if (listp ln) (length (flat ln)) 1)))
+    (flat rs)))
 
 (defun reduce-weights (subs)
-  (flat (loop for i in subs collect (if (listp (caar i)) (loop for k in i collect (mapcar #'last k)) (last (flat i))))))
+  (let ((rw (mapcar #'(lambda (x) (car (flat (if (listp x) x (list x))))) (loop for i in subs collect (if (listp (caar i)) (loop for k in i collect (mapcar #'last k)) (last (flat i)))))))
+    (flat (loop for ln in *lensubs* for i from 0 collect (loop repeat ln collect (nth i rw))))))
 
 ;;------------------------------------------------------------ 
 
@@ -174,7 +178,7 @@ and optional keys with :spectrum
 	   (let ((subs (sort-subseq (mht-mw freq harm-weight))))
 	     (mat-trans
 	      (list 
-	       (flat (reduce-subs subs))
+	       (reduce-subs subs)
 	       (reduce-weights subs)))))
 	 (warn "You have to set :harm-weight ...")))
     ((and midi (not freq) (not spectrum))
@@ -186,7 +190,7 @@ and optional keys with :spectrum
 	   (let ((subs (sort-subseq (mht-mw (mapcar #'m->f (flat midi)) harm-weight))))
 	     (mat-trans
 	      (list
-	       (mapcar #'f->m (flat (reduce-subs subs)))
+	       (mapcar #'f->m (reduce-subs subs))
 	       (reduce-weights subs)))))
 	 (warn "You have to set :harm-weight ...")))
     (t (warn "Usage ---> please read the documentation.") (documentation 'sort-melody 'function))))

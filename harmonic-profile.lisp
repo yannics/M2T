@@ -23,6 +23,6 @@
 			do (push (* bw (position (max-clip (remove nil (subseq-clip spectrum (floor (/ (- (/ f (expt 2 i)) (fact (/ f (expt 2 i)) wind)) bw)) (ceiling (/ (+ (/ f (expt 2 i)) (fact (/ f (expt 2 i)) wind)) bw))))) spectrum)) r))
 		     (car r)))))
       (format t "Fundamental = ~S Hz.~&" f0)
-      (loop for i from 1 to n collect (max-clip (remove nil (subseq-clip spectrum (floor (/ (- (* f0 i) (fact f0 wind)) bw)) (ceiling (/ (+ (* f0 i) (fact f0 wind)) bw)))))))))  
-
+      (loop for i from 1 to n collect (max-clip (remove nil (subseq-clip spectrum (floor (/ (- (* f0 i) (fact f0 wind)) bw)) (ceiling (/ (+ (* f0 i) (fact f0 wind)) bw))))))))) 
+ 
 ;;----------------------------END-----------------------------
