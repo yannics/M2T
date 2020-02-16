@@ -6,7 +6,7 @@
   :name "M2T"
   :description "Melody to Tone"
   :long-description "https://www.overleaf.com/read/sjhfhthgkgdj"
-  :version "1.2"
+  :version "1.3"
   :author "Yann Ics"
   :licence "GNU GPL"
   :maintainer "Yann Ics"
