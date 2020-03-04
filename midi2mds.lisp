@@ -6,10 +6,11 @@
 (defvar *division*)
 
 (defun get-scope ()
-  (let ((scope (if (integerp *scope*)
-		   (loop for i from 1 to *scope* when (integerp (/ *division* i)) collect (/ *division* i))
-		   (loop for i in *scope* when (integerp (/ *division* i)) collect (/ *division* i)))))
-    (if scope scope (error "Set the *scope* with either a list of integer or an integer."))))
+  (let ((scope (cond
+		 ((and *division* (integerp *scope*) (> *scope* 0)) (loop for i from 1 to *scope* when (integerp (/ *division* i)) collect (/ *division* i)))
+		 ((listp *scope*) (remove nil (loop for i in *scope* when (and (numberp i) (integerp (/ *division* i))) collect (/ *division* i))))
+		 (t nil))))
+    (if scope scope (error "Set the *scope* with either a list of integers or an integer."))))
 
 (defun round-from-scope (x)
   (if *scope*
