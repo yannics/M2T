@@ -74,23 +74,40 @@
 ;;------------------------------------------------------------ 
 ;;                                                SCORING MIDI
 
-(if (find-package :midi)
+(defvar +midi+ nil)
+(defvar +read-midi-file+ nil)
+(defvar +midifile-division+ nil)
+(defvar +midifile-tracks+ nil)
+(defvar +message-time+ nil)
+(defvar +message-key+ nil)
+(defvar +message-velocity+ nil)
+(when (find-package :midi)
+  (setf
+   +midi+ t
+   +read-midi-file+ (find-symbol "READ-MIDI-FILE" "MIDI")
+   +midifile-division+ (find-symbol "MIDIFILE-DIVISION" "MIDI")
+   +midifile-tracks+ (find-symbol "MIDIFILE-TRACKS" "MIDI")
+   +message-time+ (find-symbol "MESSAGE-TIME" "MIDI")
+   +message-key+ (find-symbol "MESSAGE-KEY" "MIDI")
+   +message-velocity+ (find-symbol "MESSAGE-VELOCITY" "MIDI")))
+
+(if +midi+
    
     (defun scoring-midi (midifile &rest track-indices)
-      (let ((midf (midi:read-midi-file (if (pathnamep midifile) (namestring midifile) midifile))))
-	(setf *division* (midi:midifile-division midf))
+      (let ((midf (funcall +read-midi-file+ (if (pathnamep midifile) (namestring midifile) midifile))))
+	(setf *division* (funcall +midifile-division+ midf))
 	(format t "division = ~a~&" *division*)
 	(add-silence-end
 	 (mapcar #'add-rest
 		 (add-duration
 		  (mapcar #'add-silence-start
 			  (mapcar #'group-notes
-				  (let ((data (remove nil (loop for tr in (midi:midifile-tracks midf) collect (loop for i in tr when (ignore-errors (or (eq (type-of i) 'NOTE-ON-MESSAGE) (eq (type-of i) 'NOTE-OFF-MESSAGE))) collect (list (round-from-scope (midi:message-time i)) (midi:message-key i) (if (or (eq (type-of i) 'NOTE-OFF-MESSAGE) (zerop (midi:message-velocity i))) 0 1)))))))				  
+				  (let ((data (remove nil (loop for tr in (funcall +midifile-tracks+ midf) collect (loop for i in tr when (ignore-errors (or (eq (type-of i) 'NOTE-ON-MESSAGE) (eq (type-of i) 'NOTE-OFF-MESSAGE))) collect (list (round-from-scope (funcall +message-time+ i)) (funcall +message-key+ i) (if (or (eq (type-of i) 'NOTE-OFF-MESSAGE) (zerop (funcall +message-velocity+ i))) 0 1)))))))				  
 				    (if (loop for x in track-indices thereis (and (numberp x) (>= x 0) (> (length data) x)))
 					(loop for i in track-indices when (and (integerp i) (>= i 0) (> (length data) i)) collect (nth i data))
 					data)))))))))
 
-    (defun scoring-midi (x) (declare (ignore x)) (warn "~&~vtThe function SCORING-MIDI requires the package MIDI:~&~vt<http://www.doc.gold.ac.uk/isms/lisp/midi/>" 3 3) nil))
+    (defun scoring-midi (&rest x) (declare (ignore x)) (warn "~&~vtThe function SCORING-MIDI requires the package MIDI:~&~vt<http://www.doc.gold.ac.uk/isms/lisp/midi/>" 3 3) nil))
 
 ;;------------------------------------------------------------ 
 ;;                                                  MIX TRACKS
