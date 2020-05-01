@@ -3,12 +3,12 @@
 ;;                                         CONVERT MIDI TO MDS
 
 (defvar *scope* 16 "sixty-fourth note")
-(defvar *division*)
+(defvar *division* nil)
 
-(defun get-scope ()
+(defun get-scope (&key int)
   (let ((scope (cond
-		 ((and *division* (integerp *scope*) (> *scope* 0)) (loop for i from 1 to *scope* when (integerp (/ *division* i)) collect (/ *division* i)))
-		 ((listp *scope*) (remove nil (loop for i in *scope* when (and (numberp i) (integerp (/ *division* i))) collect (/ *division* i))))
+		 ((and *division* (integerp (if int int *scope*)) (> (if int int *scope*) 0) (integerp (/ *division* (if int int *scope*)))) (let ((div (/ *division* (if int int *scope*)))) (reverse (loop for i from 1 until (> (* div i) *division*) collect (* div i)))))
+		 ((listp *scope*) (sort (remove-duplicates (flat (remove nil (loop for i in *scope* when (and (numberp i) (integerp (/ *division* i))) collect (get-scope :int i))))) '>))
 		 (t nil))))
     (if scope scope (error "Set the *scope* with either a list of integers or an integer."))))
 
@@ -74,6 +74,7 @@
 ;;------------------------------------------------------------ 
 ;;                                                SCORING MIDI
 
+(defvar *verbose* nil)
 (defvar +midi+ nil)
 (defvar +read-midi-file+ nil)
 (defvar +midifile-division+ nil)
@@ -96,7 +97,7 @@
     (defun scoring-midi (midifile &rest track-indices)
       (let ((midf (funcall +read-midi-file+ (if (pathnamep midifile) (namestring midifile) midifile))))
 	(setf *division* (funcall +midifile-division+ midf))
-	(format t "division = ~a~&" *division*)
+	(when *verbose* (format t "division = ~a~&" *division*))
 	(add-silence-end
 	 (mapcar #'add-rest
 		 (add-duration
@@ -206,7 +207,7 @@
   (when score
     (setf score (mapcar #'mat-trans score))
     (when scope (setf *scope* scope))
-    (format t "scope = ~{~a ~}~&" (get-scope))
+    (when *verbose* (format t "scope = ~{~a ~}~&" (get-scope)))
     ;(format t "=> ~{~a ~}~&" (loop for i in *scope* collect (/ *division* i)))
     (if (member to '(N3 SC))
 	(let ((pathname (if out out (concatenate 'string (directory-namestring (user-homedir-pathname)) "Desktop/")))
