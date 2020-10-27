@@ -6,7 +6,7 @@
   :name "M2T"
   :description "Melody to Tone"
   :long-description "https://www.overleaf.com/read/sjhfhthgkgdj"
-  :version "1.3"
+  :version "1.4"
   :author "Yann Ics"
   :licence "GNU GPL"
   :maintainer "Yann Ics"
@@ -20,9 +20,6 @@
          (:FILE "read-file")
  	 (:FILE "harmonic-profile") 
  	 (:FILE "energy-profile") 
-         (:FILE "scoring-duration")
-         (:FILE "conversion")
-         (:FILE "sorting-melody") 
-         (:FILE "midi2mds")
-	 (:FILE "M2T"))
+        (:FILE "sorting-melody") 
+       	 (:FILE "M2T"))
   )
